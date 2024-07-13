@@ -1,4 +1,4 @@
-#include "protocol.h"
+#include "include/protocol.h"
 
 int main (void) {
     Message* join_msg = create_join_message("test_channel");
