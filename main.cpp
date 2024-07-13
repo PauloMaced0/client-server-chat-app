@@ -1,6 +1,6 @@
 #include "protocol.h"
 
-int main (int argc, char *argv[]) {
+int main (void) {
     Message* join_msg = create_join_message("test_channel");
     Message* leave_msg = create_leave_message("test_channel");
     Message* register_msg = create_register_message("test_user");
