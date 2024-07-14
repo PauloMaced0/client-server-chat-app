@@ -1,6 +1,12 @@
-# Executables
+# Executables (TO BE CHANGED)
 main
 app
+
+# Build folder
+build
+
+# Cache folder
+.cache
 
 # Prerequisites
 *.d
