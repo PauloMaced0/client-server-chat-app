@@ -6,7 +6,7 @@ This project is a client-server chat application built using C++ and wxWidgets.
 First, clone the repository and its submodules:
 
 ```sh
-git clone --recurse-submodules https://github.com/yourusername/client-server-chat-app.git
+git clone --recurse-submodules https://github.com/PauloMaced0/client-server-chat-app.git
 cd client-server-chat-app
 ```
 
