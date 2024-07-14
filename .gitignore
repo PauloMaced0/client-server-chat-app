@@ -1,5 +1,6 @@
 # Executables
 main
+app
 
 # Prerequisites
 *.d
