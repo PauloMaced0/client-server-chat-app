@@ -5,20 +5,17 @@ project(client-server-chat-app)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(wxBUILD_SHARED OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+if ( CMAKE_COMPILER_IS_GNUCC )
+    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O2 -Wall -Wextra  -Wfatal-errors -pthread")
+endif()
 
 add_subdirectory(libs/wxWidgets)
 
 # Add include directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/libs/wxWidgets/include)
-
-# Add compile flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-
-message(STATUS "cmake cxx flags: ${CMAKE_CXX_FLAGS} \n")
-
-# Add include directories manually (optional)
-include_directories(${wxWidgets_ROOT_DIR}/include)
 
 # Source files for each target
 set(SRC_FILES_SERVER
