@@ -1,4 +1,4 @@
-#include "protocol.h"
+#include "../include/protocol.h"
 
 #define MSG_TOT_LEN_PREFIX 4
 #define MSG_LEN_PREFIX 2

@@ -8,23 +8,26 @@ WX_CONFIG = ~/wxWidgets-3.2.5/build-release/wx-config
 WX_CXXFLAGS = $(shell $(WX_CONFIG) --cxxflags)
 WX_LDFLAGS = $(shell $(WX_CONFIG) --libs)
 
-SRC_FILES_SERVER	= main.cpp protocol.cpp
+LIB_DIR = lib
+SRC_DIR = src
+
+SRC_FILES_SERVER	= $(SRC_DIR)/main.cpp $(LIB_DIR)/protocol.cpp
 # SRC_FILES_CLIENT	= client.cpp protocol.cpp
-# SRC_FILES_APP		= wx_main.cpp
+SRC_FILES_APP		= $(SRC_DIR)/app.cpp
 
 OBJ_FILES_TARGET_SERVER = $(SRC_FILES_SERVER:.cpp=.o)
 # OBJ_FILES_TARGET_CLIENT = $(SRC_FILES_CLIENT:.cpp=.o)
-# OBJ_FILES_TARGET_APP	= $(SRC_FILES_APP:.cpp=.o)
+OBJ_FILES_TARGET_APP	= $(SRC_FILES_APP:.cpp=.o)
 
 
 DEP_FILES_TARGET_SERVER = $(SRC_FILES_SERVER:.cpp=.d)
 # DEP_FILES_TARGET_CLIENT = $(SRC_FILES_CLIENT:.cpp=.d)
-# DEP_FILES_TARGET_APP	= $(SRC_FILES_APP:.cpp=.d)
+DEP_FILES_TARGET_APP	= $(SRC_FILES_APP:.cpp=.d)
 
 # Targets
 TARGET_SERVER	= main
 # TARGET_CLIENT	= main_wx
-# TARGET_APP		= another_main
+TARGET_APP		= app 
 
 all: $(TARGET_SERVER) $(TARGET_CLIENT) $(TARGET_APP)
 
