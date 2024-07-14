@@ -24,13 +24,13 @@ git submodule update --init --recursive
 mkdir -p build
 ```
 
-1. Configure the project with CMake:
+2. Configure the project with CMake:
 
 ```sh
 cmake . -B build
 ```
 
-1. Build the project:
+3. Build the project:
 
 ```sh
 cmake --build build
