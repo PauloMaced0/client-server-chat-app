@@ -6,8 +6,7 @@ This project is a client-server chat application built using C++ and wxWidgets.
 First, clone the repository and its submodules:
 
 ```sh
-git clone --recurse-submodules https://github.com/PauloMaced0/client-server-chat-app.git
-cd client-server-chat-app
+git clone --recurse-submodules https://github.com/PauloMaced0/client-server-chat-app.git && cd client-server-chat-app
 ```
 
 If you have already cloned the repository without `--recurse-submodules`, you can initialize and update the submodules with:
@@ -24,13 +23,13 @@ git submodule update --init --recursive
 mkdir -p build
 ```
 
-1. Configure the project with CMake:
+2. Configure the project with CMake:
 
 ```sh
 cmake . -B build
 ```
 
-1. Build the project:
+3. Build the project:
 
 ```sh
 cmake --build build
