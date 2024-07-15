@@ -1,3 +1,8 @@
+#include <stdio.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <stdlib.h>
+
 #include "protocol.h"
 
 #define MSG_TOT_LEN_PREFIX 4
@@ -71,9 +76,9 @@ char* serialize_message(const Message* msg, uint16_t* buffer_len) {
     }
 
     // Network byte order conversions
-    uint32_t net_message_total_len = htonl((uint32_t) *buffer_len);
-    uint16_t net_message_len = htons(message_len);
-    time_t net_timestamp = htonll((time_t) msg->timestamp);
+    uint32_t net_message_total_len = convert_message_len((uint32_t) *buffer_len);
+    uint16_t net_message_len = convert_text_len(message_len);
+    time_t net_timestamp = convert_timestamp((time_t) msg->timestamp);
 
     char* ptr = string;
 
@@ -179,7 +184,7 @@ Message* deserialize_message(const char* bytes) {
         }
         memcpy(msg->message, ptr, message_len);
         msg->message[message_len] = '\0';
-        ptr += message_len;
+        ptr += convert_back_text_len(message_len);
     } else {
         msg->message = NULL; 
     }
@@ -187,13 +192,7 @@ Message* deserialize_message(const char* bytes) {
     // Read timestamp
     time_t timestamp;
     memcpy(&timestamp, ptr, sizeof(timestamp));
-    msg->timestamp = (time_t) ntohll(timestamp);
-
-    printf("%d\n", msg->type);
-    printf("%s\n", msg->channel);
-    printf("%s\n", msg->user);
-    printf("%s\n", msg->message);
-    printf("%s\n", asctime(localtime(&msg->timestamp)));
+    msg->timestamp = (time_t) convert_back_timestamp(timestamp);
 
     return msg;
 }
@@ -205,4 +204,28 @@ void send_message(int socket, const Message* msg) {
 Message* receive_message(int socket) {
     Message* msg = NULL;
     return msg;
+}
+
+uint32_t convert_message_len(uint32_t buffer_len) {
+    return htonl(buffer_len);
+}
+
+uint32_t convert_back_message_len(uint32_t net_message_total_len) {
+    return ntohl(net_message_total_len);
+}
+
+uint16_t convert_text_len(uint16_t message_len) {
+    return htons(message_len);
+}
+
+uint16_t convert_back_text_len(uint16_t net_message_len) {
+    return ntohs(net_message_len);
+}
+
+uint64_t convert_timestamp(uint64_t timestamp) {
+    return htonll(timestamp);
+}
+
+uint64_t convert_back_timestamp(uint64_t net_timestamp) {
+    return ntohll(net_timestamp);
 }

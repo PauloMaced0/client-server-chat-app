@@ -1,4 +1,33 @@
+#include <stdio.h>
+
 #include "protocol.h"
+
+void print_msg (Message* message) {
+    if (message->type)
+        printf("\n%d\n", message->type);
+    else
+        printf("\ntype: (null)\n");
+
+    if (message->channel)
+        printf("%s\n", message->channel);
+    else
+        printf("channel: (null)\n");
+
+    if (message->user)
+        printf("%s\n", message->user);
+    else
+        printf("user: (null)\n");
+
+    if (message->message)
+        printf("%s\n", message->message);
+    else
+        printf("message: (null)\n");
+
+    if (message->timestamp)
+        printf("%s\n", asctime(localtime(&message->timestamp)));
+    else
+        printf("timestamp: (null)\n\n");
+}
 
 int main (void) {
     Message* join_msg = create_join_message("test_channel");
@@ -15,6 +44,7 @@ int main (void) {
         printf("%#X ", string[i]);
     }
     Message* message = deserialize_message(string);
+    print_msg(message);
     free(message);
     free(string);
 
@@ -25,6 +55,7 @@ int main (void) {
         printf("%#X ", string[i]);
     }
     message = deserialize_message(string);
+    print_msg(message);
     free(string);
     free(message);
 
@@ -35,6 +66,7 @@ int main (void) {
         printf("%#X ", string[i]);
     }
     message = deserialize_message(string);
+    print_msg(message);
     free(string);
     free(message);
 
@@ -45,6 +77,7 @@ int main (void) {
         printf("%#X ", string[i]);
     }
     message = deserialize_message(string);
+    print_msg(message);
     free(string);
     free(message);
 
