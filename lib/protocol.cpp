@@ -1,4 +1,3 @@
-#include <cstdint>
 #include <stdio.h>
 #include <string.h>
 #include <arpa/inet.h>
@@ -194,12 +193,6 @@ Message* deserialize_message(const char* bytes) {
     time_t timestamp;
     memcpy(&timestamp, ptr, sizeof(timestamp));
     msg->timestamp = (time_t) convert_back_timestamp(timestamp);
-
-    printf("%d\n", msg->type);
-    printf("%s\n", msg->channel);
-    printf("%s\n", msg->user);
-    printf("%s\n", msg->message);
-    printf("%s\n", asctime(localtime(&msg->timestamp)));
 
     return msg;
 }

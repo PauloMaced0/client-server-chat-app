@@ -34,7 +34,7 @@
 #endif
 
 typedef enum {
-    JOIN = 0,
+    JOIN = 1,
     LEAVE,
     REGISTER,
     TEXT
