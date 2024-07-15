@@ -1,6 +1,7 @@
 #ifndef _PROTOCOL_H_
 #define _PROTOCOL_H_
 
+#include <cstdint>
 #include <stdlib.h>
 #include <time.h>
 
