@@ -9,7 +9,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(UNIX AND NOT APPLE)
     message(STATUS "Configuring for Linux")
-    find_package(X11 OPTIONAL)
+    find_package(X11)
     if(X11_FOUND)
         if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
             set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O2 -Wall -Wextra -Wfatal-errors -pthread -lX11")
