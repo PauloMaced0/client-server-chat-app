@@ -1,6 +1,26 @@
 # Client-Server Chat Application
 This project is a client-server chat application built using C++ and wxWidgets.
 
+### General
+- CMake 3.10 or higher
+- A C++ compiler that supports C++17 (e.g., GCC, Clang)
+
+### System-Specific Requirements
+
+#### Linux
+- GTK+ 3 development files
+- Wayland development files (if using Wayland)
+- X11 development files (if using X11)
+
+#### macOS
+- XQuartz (for X11 support, optional)
+- Native macOS graphical development files are usually included with Xcode
+
+#### Windows
+- No additional graphical development files needed if using wxWidgets with native Windows support
+
+**Note**: Ensure you have installed the development files for the graphical interfaces your system uses. For instance, on Linux, you might need to install packages like `libgtk-3-dev`, `libwayland-dev`, or `libx11-dev`.
+
 ## Cloning the Repository
 
 First, clone the repository and its submodules:
