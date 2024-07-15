@@ -7,8 +7,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(wxBUILD_SHARED OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-if ( CMAKE_COMPILER_IS_GNUCC )
+if ( CMAKE_COMPILER_IS_GNUCXX )
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O2 -Wall -Wextra  -Wfatal-errors -pthread")
+elseif( CMAKE_COMPILER_IS_GNUCC )
+    set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -O2 -Wall -Wextra  -Wfatal-errors -pthread")
 endif()
 
 add_subdirectory(libs/wxWidgets)
