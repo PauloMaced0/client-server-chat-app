@@ -51,7 +51,7 @@ set(SRC_FILES_CLIENT
 )
 
 # Add executables
-add_executable(main ${SRC_FILES_SERVER})
+add_executable(server ${SRC_FILES_SERVER})
 add_executable(app ${SRC_FILES_CLIENT})
 
 # Link wxWidgets to the app target
