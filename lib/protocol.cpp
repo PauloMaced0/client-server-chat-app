@@ -1,231 +1,147 @@
-#include <stdio.h>
-#include <string.h>
 #include <arpa/inet.h>
-#include <stdlib.h>
+#include <ctime>
+#include <iostream>
+#include <sstream>
+#include <cstring>
 
 #include "protocol.h"
 
-#define MSG_TOT_LEN_PREFIX 4
-#define MSG_LEN_PREFIX 2
-#define LEN_CHANNEL_PREFIX 1
-#define LEN_USER_PREFIX 1
-
-Message* create_join_message(const char* channel) {
-    Message* msg = (Message*)malloc(sizeof(Message));
-    msg->type = JOIN;
-    msg->channel = strdup(channel);
-    msg->user = NULL;
-    msg->message = NULL;
-    time(&msg->timestamp);
-    return msg;
+string JoinMessage::to_string() const {
+    std::ostringstream oss;
+    oss << command << '\0' << channel;
+    return oss.str();
 }
 
-Message* create_leave_message(const char* channel) {
-    Message* msg = (Message*)malloc(sizeof(Message));
-    msg->type = LEAVE;
-    msg->channel = strdup(channel);
-    msg->user = NULL;
-    msg->message = NULL;
-    time(&msg->timestamp);
-    return msg;
+uniquePtr<JoinMessage> JoinMessage::from_string(const string &data) {
+    stringStream strStream(data);
+    string cmd, ch;
+    std::getline(strStream, cmd, '\0');
+    std::getline(strStream, ch, '\0');
+    return std::make_unique<JoinMessage>(ch);
 }
 
-Message* create_register_message(const char* user) {
-    Message* msg = (Message*)malloc(sizeof(Message));
-    msg->type = REGISTER;
-    msg->channel = NULL;
-    msg->user = strdup(user);
-    msg->message = NULL;
-    time(&msg->timestamp);
-    return msg;
+string LeaveMessage::to_string() const {
+    std::ostringstream oss;
+    oss << command << '\0' << channel;
+    return oss.str();
 }
 
-Message* create_text_message(const char* message, const char* channel) {
-    Message* msg = (Message*)malloc(sizeof(Message));
-    msg->type = TEXT;
-    msg->channel = strdup(channel);
-    msg->user = NULL;
-    msg->message = strdup(message);
-    time(&msg->timestamp);
-    return msg;
+uniquePtr<LeaveMessage> LeaveMessage::from_string(const string &data) {
+    stringStream strStream(data);
+    string cmd, ch;
+    std::getline(strStream, cmd, '\0');
+    std::getline(strStream, ch, '\0');
+    return std::make_unique<LeaveMessage>(ch);
 }
 
-void free_message(Message* msg) {
-    if (msg) {
-        if (msg->message)
-            free(msg->channel);
-        if (msg->user)
-            free(msg->user);
-        if (msg->message)
-            free(msg->message);
-        free(msg);
-    }
+string RegisterMessage::to_string() const {
+    std::ostringstream oss;
+    oss << command << '\0' << user ;
+    return oss.str();
 }
 
-char* serialize_message(const Message* msg, uint16_t* buffer_len) {
-    uint8_t channel_len = msg->channel == NULL ? 0 : strlen(msg->channel);
-    uint8_t user_len = msg->user == NULL ? 0 : strlen(msg->user);
-    uint16_t message_len = msg->message == NULL ? 0 : strlen(msg->message);
-
-    *buffer_len =  MSG_TOT_LEN_PREFIX + sizeof(msg->type) + LEN_CHANNEL_PREFIX + channel_len + LEN_USER_PREFIX + user_len + MSG_LEN_PREFIX + message_len + sizeof(time_t);
-    char* string = (char*) malloc(*buffer_len);
-
-    if (string == NULL) {
-        perror("Failed to allocate memory");
-        return NULL;
-    }
-
-    // Network byte order conversions
-    uint32_t net_message_total_len = convert_message_len((uint32_t) *buffer_len);
-    uint16_t net_message_len = convert_text_len(message_len);
-    time_t net_timestamp = convert_timestamp((time_t) msg->timestamp);
-
-    char* ptr = string;
-
-    memcpy(ptr, &net_message_total_len, sizeof(net_message_total_len));
-    ptr += sizeof(net_message_total_len);
-
-    memcpy(ptr, &(msg->type), sizeof(msg->type));
-    ptr += sizeof(msg->type);
-    
-    memcpy(ptr, &channel_len, sizeof(channel_len));
-    ptr += sizeof(channel_len);
-    if (channel_len > 0) {
-        memcpy(ptr, msg->channel, channel_len);
-        ptr += channel_len;
-    }
-
-    memcpy(ptr, &user_len, sizeof(user_len));
-    ptr += sizeof(user_len);
-    if (user_len > 0) {
-        memcpy(ptr, msg->user, user_len);
-        ptr += user_len;
-    }
-
-    memcpy(ptr, &net_message_len, sizeof(net_message_len));
-    ptr += sizeof(net_message_len);
-    if (message_len > 0) {
-        memcpy(ptr, msg->message, message_len);
-        ptr += message_len;
-    }
-
-    memcpy(ptr, &net_timestamp, sizeof(net_timestamp));
-
-    return string;
+uniquePtr<RegisterMessage> RegisterMessage::from_string(const string &data) {
+    stringStream strStream(data);
+    string cmd, usr;
+    std::getline(strStream, cmd, '\0');
+    std::getline(strStream, usr, '\0');
+    return std::make_unique<RegisterMessage>(usr);
 }
 
-Message* deserialize_message(const char* bytes) {
-    Message* msg = (Message*) malloc(sizeof(Message));
-    if (msg == NULL) {
-        perror("Failed to allocate memory");
-        return NULL;
-    }
+string TextMessage::to_string() const {
+    std::ostringstream oss;
+    oss << command << '\0' << message << '\0' << channel << '\0' << ts;
+    return oss.str();
+}
 
-    const char* ptr = bytes;
-
-    ptr += MSG_TOT_LEN_PREFIX;
-
-    // Read message type
-    memcpy(&msg->type, ptr, sizeof(msg->type));
-    ptr += sizeof(msg->type);
-
-    // Read channel 
-    uint8_t channel_len;
-    memcpy(&channel_len, ptr, LEN_CHANNEL_PREFIX);
-    ptr += LEN_CHANNEL_PREFIX;
-
-    if (channel_len > 0) {
-        msg->channel = (char*) malloc(channel_len + 1);
-        if (msg->channel == NULL) {
-            perror("Failed to allocate memory");
-            free(msg);
-            return NULL;
-        }
-        memcpy(msg->channel, ptr, channel_len);
-        msg->channel[channel_len] = '\0';
-        ptr += channel_len;
-    } else {
-        msg->channel = NULL; 
-    }
-
-    // Read user
-    uint8_t user_len;
-    memcpy(&user_len, ptr, LEN_USER_PREFIX);
-    ptr += LEN_USER_PREFIX;
-
-    if (user_len > 0) {
-        msg->user = (char*) malloc(user_len + 1); 
-        if (msg->user == NULL) {
-            perror("Failed to allocate memory");
-            free(msg->channel);
-            free(msg);
-            return NULL;
-        }
-        memcpy(msg->user, ptr, user_len);
-        msg->user[user_len] = '\0';
-        ptr += user_len;
-    } else {
-        msg->user = NULL;
-    }
-
-    // Read message
-    uint16_t message_len;
-    memcpy(&message_len, ptr, MSG_LEN_PREFIX);
-    ptr += MSG_LEN_PREFIX;
-
-    if (message_len > 0) {
-        msg->message = (char*) malloc(message_len + 1);
-        if (msg->message == NULL) {
-            perror("Failed to allocate memory");
-            free(msg->user);
-            free(msg->channel);
-            free(msg);
-            return NULL;
-        }
-        memcpy(msg->message, ptr, message_len);
-        msg->message[message_len] = '\0';
-        ptr += convert_back_text_len(message_len);
-    } else {
-        msg->message = NULL; 
-    }
-
-    // Read timestamp
+uniquePtr<TextMessage> TextMessage::from_string(const string &data) {
+    stringStream strStream(data);
+    string cmd, msg, ch;
     time_t timestamp;
-    memcpy(&timestamp, ptr, sizeof(timestamp));
-    msg->timestamp = (time_t) convert_back_timestamp(timestamp);
-
-    return msg;
+    std::getline(strStream, cmd, '\0');
+    std::getline(strStream, msg, '\0');
+    std::getline(strStream, ch, '\0');
+    strStream >> timestamp;
+    return std::make_unique<TextMessage>(msg, ch, timestamp);
 }
 
-void send_message(int socket, const Message* msg) {
-    return;
+RegisterMessage Proto::register_user(const string &username) {
+    return RegisterMessage(username);
 }
 
-Message* receive_message(int socket) {
-    Message* msg = NULL;
-    return msg;
+JoinMessage Proto::join(const string &channel) {
+    return JoinMessage(channel);
+}
+LeaveMessage Proto::leave(const string &channel) {
+    return LeaveMessage(channel);
 }
 
-uint32_t convert_message_len(uint32_t buffer_len) {
-    return htonl(buffer_len);
+TextMessage Proto::message(const string &message, const string& channel) {
+    return TextMessage(message, channel, static_cast<time_t>(std::time(nullptr)));
 }
 
-uint32_t convert_back_message_len(uint32_t net_message_total_len) {
-    return ntohl(net_message_total_len);
+void Proto::send_msg(int socket_fd, const Message &msg) {
+    string msg_str = msg.to_string();
+    uint32_t len = htonl(msg_str.size());
+
+    if (send(socket_fd, &len, sizeof(len), 0) == -1)
+        std::cerr << "Failed to send message length. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
+    else if ((uint32_t) send(socket_fd, &len, sizeof(len), 0) != sizeof(len))
+        throw std::runtime_error("Failed to send message length");
+
+    if (send(socket_fd, msg_str.c_str(), msg_str.size(), 0) == -1)
+        std::cerr << "Failed to send message data. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
+    else if ((uint32_t) send(socket_fd, msg_str.c_str(), msg_str.size(), 0) == msg_str.size())
+        throw std::runtime_error("Failed to send message data");
 }
 
-uint16_t convert_text_len(uint16_t message_len) {
-    return htons(message_len);
+uniquePtr<Message> Proto::recv_msg(int socket_fd) {
+    uint32_t len;
+    int received;
+
+    received = recv(socket_fd, &len, sizeof(len), 0);
+    if (received == 0)
+        throw std::runtime_error("Connection is closed");
+    else if (received == -1)
+        std::cerr << "Failed to receive message length. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
+    else if ((uint32_t) received != sizeof(len))
+        throw std::runtime_error("Failed to receive message data");
+
+    len = ntohl(len);
+    char buffer[len + 1];
+
+    received = recv(socket_fd, buffer, len, 0);
+    if (received == 0)
+        throw std::runtime_error("Connection is closed");
+    else if (received == -1)
+        std::cerr << "Failed to receive message length. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
+    else if ((uint32_t) received != sizeof(len))
+        throw std::runtime_error("Failed to receive message data");
+
+    buffer[len] = '\0';
+    return Message::from_string(buffer);
 }
 
-uint16_t convert_back_text_len(uint16_t net_message_len) {
-    return ntohs(net_message_len);
+uniquePtr<Message> Message::from_string(const string& data) {
+    stringStream strStream(data);
+    string command;
+    std::getline(strStream, command, '\0');
+    int cmd = std::stoi(command);
+
+    if (cmd == REGISTER) {
+        return RegisterMessage::from_string(data);
+    } else if (cmd == JOIN) {
+        return JoinMessage::from_string(data);
+    } else if (cmd == LEAVE) {
+        return LeaveMessage::from_string(data);
+    } else if (cmd == TEXT) {
+        return TextMessage::from_string(data);
+    } else {
+        throw ProtoBadFormat(data);
+    }
 }
 
-uint64_t convert_timestamp(uint64_t timestamp) {
-    return htonll(timestamp);
+const string& ProtoBadFormat::original_msg() const {
+    return original_msg_;
 }
 
-uint64_t convert_back_timestamp(uint64_t net_timestamp) {
-    return ntohll(net_timestamp);
-}

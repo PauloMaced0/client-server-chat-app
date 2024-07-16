@@ -1,9 +1,9 @@
 #ifndef _PROTOCOL_H_
 #define _PROTOCOL_H_
 
-#include <cstdint>
-#include <stdlib.h>
-#include <time.h>
+#include <ctime>
+#include <string>
+#include <memory>
 
 #if defined(__APPLE__)
 
@@ -33,6 +33,12 @@
 
 #endif
 
+using string = std::string;
+using stringStream = std::istringstream;
+
+template <typename T>
+using uniquePtr = std::unique_ptr<T>;
+
 typedef enum {
     JOIN = 1,
     LEAVE,
@@ -40,45 +46,91 @@ typedef enum {
     TEXT
 } MessageType;
 
-typedef struct {
-    MessageType type;
-    char* channel;
-    char* user;
-    char* message;
-    time_t timestamp;
-} Message;
+class Message {
+public:
+    int command;
 
-// Function prototypes
-Message* create_join_message(const char* channel);
-Message* create_leave_message(const char* channel);
-Message* create_register_message(const char* user);
-Message* create_text_message(const char* message, const char* channel);
-void free_message(Message* msg);
-char* message_to_json(const Message* msg);
-Message* json_to_message(const char* json);
-void send_message(int socket, const Message* msg);
-Message* receive_message(int socket);
-char* serialize_message(const Message* msg, uint16_t* buffer_len);
-Message* deserialize_message(const char* bytes);
-void send_message(int socket, const Message* msg);
-Message* receive_message(int socket);
+    Message(const int& cmd) : command(cmd) {}
 
-// Functions to convert message length to network byte order
-uint32_t convert_message_len(uint32_t buffer_len);
+    virtual ~Message() = default;
 
-// Functions to convert message length from network byte order
-uint32_t convert_back_message_len(uint32_t net_message_total_len);
+    virtual string to_string() const = 0;
 
-// Functions to convert 16-bit text data to network byte order
-uint16_t convert_text_len(uint16_t message_len);
+    static uniquePtr<Message> from_string(const string& data);
+};
 
-// Functions to convert 16-bit text data from network byte order
-uint16_t convert_back_text_len(uint16_t net_message_len);
+class JoinMessage : public Message {
+public:
+    string channel;
 
-// Functions to convert 64-bit timestamp to network byte order
-uint64_t convert_timestamp(uint64_t timestamp);
+    JoinMessage(const string& ch) : Message(JOIN), channel(ch) {}
 
-// Functions to convert 64-bit timestamp from network byte order
-uint64_t convert_back_timestamp(uint64_t net_timestamp);
+    string to_string() const override;
+
+    static uniquePtr<JoinMessage> from_string(const string& data);
+};
+
+
+class LeaveMessage : public Message {
+public:
+    string channel;
+
+    LeaveMessage(const string& ch) : Message(LEAVE), channel(ch) {}
+
+    string to_string() const override;
+
+    static uniquePtr<LeaveMessage> from_string(const string& data);
+};
+
+class RegisterMessage : public Message {
+public:
+    string user;
+
+    RegisterMessage(const string& usr) : Message(REGISTER), user(usr) {}
+
+    string to_string() const override;
+
+    static uniquePtr<RegisterMessage> from_string(const string& data);
+};
+
+class TextMessage : public Message {
+public:
+    string message;
+    string channel;
+    time_t ts;
+
+    TextMessage(const string& msg, const string& ch, time_t timestamp = time(NULL))
+        : Message(TEXT), message(msg), channel(ch), ts(timestamp) {}
+
+    string to_string() const override;
+
+    static uniquePtr<TextMessage> from_string(const string& data);
+};
+
+class Proto {
+public:
+    static RegisterMessage register_user(const string& username);
+
+    static JoinMessage join(const string& channel);
+
+    static LeaveMessage leave(const string& channel);
+
+    static TextMessage message(const string& message, const string& channel = "");
+
+    static void send_msg(int socket_fd, const Message& msg);
+
+    static uniquePtr<Message> recv_msg(int socket_fd);
+};
+
+class ProtoBadFormat : public std::runtime_error {
+public:
+    ProtoBadFormat(const string& original_msg)
+        : std::runtime_error("Bad message format"), original_msg_(original_msg) {}
+
+    const string& original_msg() const;
+
+private:
+    string original_msg_;
+};
 
 #endif // !_PROTOCOL_H_
