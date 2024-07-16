@@ -3,6 +3,7 @@
 
 #include <ctime>
 #include <string>
+#include <memory>
 
 #if defined(__APPLE__)
 
