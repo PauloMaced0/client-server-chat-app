@@ -52,10 +52,10 @@ cmake . -B build
 3. Build the project:
 
 ```sh
-cmake --build build
+cmake --build build -j [N]
 ```
 
-**Note**: Add `-j [N], --jobs[=N]` (allow N jobs at once; infinite jobs with no arg) at the end of `cmake` command to optimize build performance.
+**Note**: Executing `cmake` with the option `-j`, allows N jobs at once, infinite jobs with no argument. This optimizes build performance.
 
 ## Project Structure 
 
