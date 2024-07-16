@@ -2,6 +2,7 @@
 #include <ctime>
 #include <iostream>
 #include <sstream>
+#include <cstring>
 
 #include "protocol.h"
 
