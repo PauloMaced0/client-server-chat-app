@@ -55,6 +55,8 @@ cmake . -B build
 cmake --build build
 ```
 
+**Note**: Add `-j [N], --jobs[=N]` (Allow N jobs at once; infinite jobs with no arg) at the end of `cmake` command to optimize build performance.
+
 ## Project Structure 
 
 - `src/`: Contains the source files for the application.
