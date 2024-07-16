@@ -86,12 +86,12 @@ void Proto::send_msg(int socket_fd, const Message &msg) {
 
     if (send(socket_fd, &len, sizeof(len), 0) == -1)
         std::cerr << "Failed to send message length. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
-    else if (send(socket_fd, &len, sizeof(len), 0) != sizeof(len))
+    else if ((uint32_t) send(socket_fd, &len, sizeof(len), 0) != sizeof(len))
         throw std::runtime_error("Failed to send message length");
 
     if (send(socket_fd, msg_str.c_str(), msg_str.size(), 0) == -1)
         std::cerr << "Failed to send message data. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
-    else if (send(socket_fd, msg_str.c_str(), msg_str.size(), 0) == msg_str.size())
+    else if ((uint32_t) send(socket_fd, msg_str.c_str(), msg_str.size(), 0) == msg_str.size())
         throw std::runtime_error("Failed to send message data");
 }
 
@@ -104,7 +104,7 @@ uniquePtr<Message> Proto::recv_msg(int socket_fd) {
         throw std::runtime_error("Connection is closed");
     else if (received == -1)
         std::cerr << "Failed to receive message length. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
-    else if (received != sizeof(len))
+    else if ((uint32_t) received != sizeof(len))
         throw std::runtime_error("Failed to receive message data");
 
     len = ntohl(len);
@@ -115,7 +115,7 @@ uniquePtr<Message> Proto::recv_msg(int socket_fd) {
         throw std::runtime_error("Connection is closed");
     else if (received == -1)
         std::cerr << "Failed to receive message length. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
-    else if (received != sizeof(len))
+    else if ((uint32_t) received != sizeof(len))
         throw std::runtime_error("Failed to receive message data");
 
     buffer[len] = '\0';
