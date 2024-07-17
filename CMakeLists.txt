@@ -44,6 +44,7 @@ include_directories(${PROJECT_SOURCE_DIR}/libs/wxWidgets/include)
 set(SRC_FILES_SERVER
     src/server.cpp
     lib/protocol.cpp
+    lib/server_utils.cpp
 )
 
 set(SRC_FILES_CLIENT
