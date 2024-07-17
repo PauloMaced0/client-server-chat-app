@@ -34,10 +34,6 @@
 #endif
 
 using string = std::string;
-using stringStream = std::istringstream;
-
-template <typename T>
-using uniquePtr = std::unique_ptr<T>;
 
 typedef enum {
     JOIN = 1,
@@ -56,7 +52,7 @@ public:
 
     virtual string to_string() const = 0;
 
-    static uniquePtr<Message> from_string(const string& data);
+    static std::unique_ptr<Message> from_string(const string& data);
 };
 
 class JoinMessage : public Message {
@@ -67,7 +63,7 @@ public:
 
     string to_string() const override;
 
-    static uniquePtr<JoinMessage> from_string(const string& data);
+    static std::unique_ptr<JoinMessage> from_string(const string& data);
 };
 
 
@@ -79,7 +75,7 @@ public:
 
     string to_string() const override;
 
-    static uniquePtr<LeaveMessage> from_string(const string& data);
+    static std::unique_ptr<LeaveMessage> from_string(const string& data);
 };
 
 class RegisterMessage : public Message {
@@ -90,7 +86,7 @@ public:
 
     string to_string() const override;
 
-    static uniquePtr<RegisterMessage> from_string(const string& data);
+    static std::unique_ptr<RegisterMessage> from_string(const string& data);
 };
 
 class TextMessage : public Message {
@@ -104,7 +100,7 @@ public:
 
     string to_string() const override;
 
-    static uniquePtr<TextMessage> from_string(const string& data);
+    static std::unique_ptr<TextMessage> from_string(const string& data);
 };
 
 class Proto {
@@ -119,7 +115,7 @@ public:
 
     static void send_msg(int socket_fd, const Message& msg);
 
-    static uniquePtr<Message> recv_msg(int socket_fd);
+    static std::unique_ptr<Message> recv_msg(int socket_fd);
 };
 
 class ProtoBadFormat : public std::runtime_error {
