@@ -3,6 +3,7 @@
 
 #include "protocol.h"
 
+#include <atomic>
 #include <cstdint>
 #include <memory>
 #include <netinet/in.h>

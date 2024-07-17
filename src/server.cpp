@@ -1,7 +1,10 @@
+#include "server_utils.h"
+
 #include <arpa/inet.h>
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
+#include <cstring>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -10,16 +13,11 @@
 #include <thread>
 #include <unistd.h>
 
-#include "server_utils.h"
-
 #define MAX_CLIENTS 100
 #define BACKLOG 5
 #define PROTOCOL "TPC"
 #define IP_ADDRESS "127.0.0.1"
 #define PORT 5000
-
-void printServerInfo(const std::string& protocol, const std::string& ip_address, int port) {
-}
 
 int main (void) {
     int listenfd = 0, connfd = 0;
