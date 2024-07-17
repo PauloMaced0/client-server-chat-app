@@ -1,6 +1,5 @@
 #include "protocol.h"
 
-#include "protocol.h"
 #include <arpa/inet.h>
 #include <cstdlib>
 #include <ctime>
