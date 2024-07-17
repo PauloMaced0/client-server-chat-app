@@ -1,36 +1,88 @@
+#include <arpa/inet.h>
+#include <chrono>
+#include <csignal>
+#include <cstdlib>
+#include <iomanip>
 #include <iostream>
+#include <memory>
+#include <netinet/in.h>
+#include <sys/_endian.h>
+#include <sys/socket.h>
+#include <thread>
+#include <unistd.h>
 
-#include "protocol.h"
+#include "server_utils.h"
+
+#define MAX_CLIENTS 100
+#define BACKLOG 5
+#define PROTOCOL "TPC"
+#define IP_ADDRESS "127.0.0.1"
+#define PORT 5000
+
+void printServerInfo(const std::string& protocol, const std::string& ip_address, int port) {
+}
 
 int main (void) {
-    JoinMessage join_msg("test_channel");
-    LeaveMessage leave_msg("test_channel");
-    RegisterMessage register_msg("test_user");
-    TextMessage text_msg("Hello, world!", "test_channel");
+    int listenfd = 0, connfd = 0;
+    struct sockaddr_in serv_addr;
+    struct sockaddr_in cli_addr;
+    socklen_t clilen = sizeof(cli_addr);
 
-    uniquePtr<JoinMessage> msg1 = JoinMessage::from_string(join_msg.to_string());
+    if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        std::cerr << "Failed when creating an endpoint for communication. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
-    string str1 = join_msg.to_string();
-    string str2 = msg1->to_string();
-    if(str1.compare(str2) == 0)
-        std::cout << "Join message OK! " << str2 << std::endl;
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = inet_addr(IP_ADDRESS);
+    serv_addr.sin_port = PORT;
 
-    uniquePtr<LeaveMessage> msg2 = LeaveMessage::from_string(leave_msg.to_string());
-    str1 = leave_msg.to_string();
-    str2 = msg2->to_string();
-    if(str1.compare(str2) == 0)
-        std::cout << "Leave message OK! " << str2 << std::endl;
+    signal(SIGPIPE, SIG_IGN);
 
-    uniquePtr<RegisterMessage> msg3 = RegisterMessage::from_string(register_msg.to_string());
-    str1 = register_msg.to_string();
-    str2 = msg3->to_string();
-    if(str1.compare(str2) == 0)
-        std::cout << "Register message OK! " << str2 << std::endl;
+    if (bind(listenfd, (struct sockaddr*) &serv_addr, sizeof(serv_addr)) == -1) {
+        std::cerr << "Failed to bind a name to a socket. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
-    uniquePtr<TextMessage> msg4 = TextMessage::from_string(text_msg.to_string());
-    str1 = text_msg.to_string();
-    str2 = msg4->to_string();
-    if(str1.compare(str2) == 0)
-        std::cout << "Text message OK! " << str2 << std::endl;
-    return 0;
+    if (listen(listenfd, BACKLOG) == -1) {
+        std::cerr << "Failed to listen for socket connections and limit the queue of incoming connections. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    std::cout << "+==================================+" << std::endl;
+    std::cout << "|           SERVER INFO            |" << std::endl;
+    std::cout << "+-----------------+----------------+" << std::endl;
+    std::cout << "|    Protocol     | " << std::setw(14) << PROTOCOL << " |" << std::endl;
+    std::cout << "+-----------------+----------------+" << std::endl;
+    std::cout << "|   Ip Address    | " << std::setw(14) << IP_ADDRESS << " |" << std::endl;
+    std::cout << "+-----------------+----------------+" << std::endl;
+    std::cout << "|      Port       | " << std::setw(14) << PORT << " |" << std::endl;
+    std::cout << "+-----------------+----------------+" << std::endl;
+    std::cout << "|     Backlog     | " << std::setw(14) << BACKLOG << " |" << std::endl;
+    std::cout << "+-----------------+----------------+" << std::endl;
+    std::cout << "|  Max. Clients   | " << std::setw(14) << MAX_CLIENTS << " |" << std::endl;
+    std::cout << "+==================================+\n" << std::endl;
+
+    while (true) {
+        if ((connfd = accept(listenfd, (struct sockaddr*) &cli_addr, &clilen)) == -1) {
+            std::cerr << "Failed to listen for socket connections and limit the queue of incoming connections. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        if (cli_count.load() + 1 == MAX_CLIENTS) {
+            std::cout << "<< max clients reached\n";
+            std::cout << "<< reject client ";
+            print_addr_port(cli_addr);
+            close(connfd);
+            continue;
+        }
+
+        std::unique_ptr<Client> client = std::make_unique<Client>(connfd, cli_addr, uid.fetch_add(1));
+        std::thread(handle_client, std::move(client)).detach();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    close(listenfd);
+
+    return EXIT_SUCCESS;
 }
