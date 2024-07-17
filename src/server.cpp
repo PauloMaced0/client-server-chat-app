@@ -6,7 +6,6 @@
 #include <iostream>
 #include <memory>
 #include <netinet/in.h>
-#include <sys/_endian.h>
 #include <sys/socket.h>
 #include <thread>
 #include <unistd.h>
