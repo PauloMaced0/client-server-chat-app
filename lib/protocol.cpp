@@ -1,11 +1,12 @@
+#include "protocol.h"
+
+#include "protocol.h"
 #include <arpa/inet.h>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
 #include <sstream>
 #include <cstring>
-
-#include "protocol.h"
 
 string JoinMessage::to_string() const {
     std::ostringstream oss;

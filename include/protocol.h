@@ -2,6 +2,7 @@
 #define _PROTOCOL_H_
 
 #include <ctime>
+#include <stdexcept>
 #include <string>
 #include <memory>
 
