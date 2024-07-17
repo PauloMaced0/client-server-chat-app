@@ -22,7 +22,7 @@ public:
     string name;                // Client name 
 
     Client(int socket_fd, sockaddr_in client_addr, uint32_t client_uid)
-    : connfd(socket_fd), addr(client_addr), uid(client_uid), name("") {}
+    : addr(client_addr), connfd(socket_fd), uid(client_uid), name("") {}
 
     void sendmsg(Message &msg, int sock_fd);
 };
