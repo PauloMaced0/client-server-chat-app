@@ -9,6 +9,11 @@ class MainFrame : public wxFrame
 {
 public:
     MainFrame(const wxString &title);
+
+private:
+    // something
+    //
+    void AddChatMessage(const wxString& message, bool isSender);
 };
 
 #endif // !_MAIN_FRAME_H_
