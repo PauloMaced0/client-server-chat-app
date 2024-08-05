@@ -7,6 +7,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(wxBUILD_SHARED OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Set xpm resource files directory
+set(XPM_DIR ${CMAKE_SOURCE_DIR}/resources)
+
+add_subdirectory(libs/wxWidgets)
+
 if (APPLE)
     message(STATUS "Configuring for macOS")
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -34,12 +39,6 @@ elseif(WIN32)
     message(STATUS "Using Windows? XD...")
 endif()
 
-add_subdirectory(libs/wxWidgets)
-
-# Add include directories
-include_directories(${PROJECT_SOURCE_DIR}/include)
-include_directories(${PROJECT_SOURCE_DIR}/libs/wxWidgets/include)
-
 # Source files for each target
 set(SRC_FILES_SERVER
     src/server.cpp
@@ -57,4 +56,10 @@ add_executable(server ${SRC_FILES_SERVER})
 add_executable(app ${SRC_FILES_CLIENT})
 
 # Link wxWidgets to the app target
-target_link_libraries(app wx::net wx::core wx::base)
+target_link_libraries(app wx::net wx::richtext)
+
+# Add include directories
+include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/libs/wxWidgets/include)
+include_directories(${XPM_DIR})
+
