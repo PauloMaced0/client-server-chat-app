@@ -15,6 +15,8 @@
 
 #include "info.xpm"
 #include "video.xpm"
+#include "edit.xpm"
+#include "user.xpm"
 
 MainFrame::MainFrame(const wxString &title)
     : wxFrame(nullptr, wxID_ANY, title)
@@ -23,8 +25,8 @@ MainFrame::MainFrame(const wxString &title)
 
     wxSplitterWindow* splitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_BORDER | wxSP_LIVE_UPDATE);
 
-    wxPanel* panel_left = new wxPanel(splitter, wxID_ANY, wxDefaultPosition, wxSize(300, 200));
-    wxPanel* panel_right = new wxPanel(splitter, wxID_ANY, wxDefaultPosition, wxSize(400, 200));
+    wxPanel* panel_left = new wxPanel(splitter, wxID_ANY, wxDefaultPosition);
+    wxPanel* panel_right = new wxPanel(splitter, wxID_ANY, wxDefaultPosition);
 
     panel_left->SetBackgroundColour(wxColor(36, 36, 38));
     panel_right->SetMinSize(wxSize(350, 200));
@@ -32,16 +34,73 @@ MainFrame::MainFrame(const wxString &title)
     wxBoxSizer* leftSizer = new wxBoxSizer(wxVERTICAL);
 
     wxBoxSizer* searchSizer = new wxBoxSizer(wxHORIZONTAL);
-    wxButton* m_btn_create_new_contact = new wxButton(panel_left, wxID_ANY, wxT("New contact"), wxDefaultPosition, wxSize(100, 30));
+    // wxStaticBitmap* create_new_message = new wxStaticBitmap(panel_left, wxID_ANY, wxBitmap(edit), wxDefaultPosition, wxSize(20, 20));
 
-    wxSearchCtrl* search = new wxSearchCtrl(panel_left, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(250, 30));
+    wxSearchCtrl* search = new wxSearchCtrl(panel_left, wxID_ANY, wxEmptyString, wxDefaultPosition);
     search->ShowCancelButton(true);
     search->ShowSearchButton(true);
 
-    searchSizer->Add(search, 1, wxEXPAND | wxALL, 5);
-    searchSizer->Add(m_btn_create_new_contact, 0, wxALL, 5);
+    searchSizer->Add(search, 1, wxEXPAND | wxLEFT | wxRIGHT, 10);
+    // searchSizer->Add(create_new_message, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 8);
 
     leftSizer->Add(searchSizer, 0, wxEXPAND | wxTOP | wxBOTTOM, 5);
+
+/* Messages/Contacts stack */
+    wxScrolledWindow* contactsList = new wxScrolledWindow(panel_left, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    contactsList->SetMinSize(wxSize(250, 60));
+    contactsList->SetBackgroundColour(*wxRED);
+    contactsList->SetScrollRate(5, 5);
+
+    wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
+
+    wxPanel* contactPanel = new wxPanel(contactsList, wxID_ANY, wxDefaultPosition);
+    contactPanel->SetBackgroundColour(wxColor(*wxGREEN));
+
+    wxBoxSizer* contactSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    // Profile Image
+    // wxBitmap profileBitmap(wxImage("../resources/something.png").Rescale(50, 50));
+    wxBitmap profileBitmap(user);
+    wxStaticBitmap* profileImage = new wxStaticBitmap(contactPanel, wxID_ANY, profileBitmap, wxDefaultPosition, wxSize(40, 40));
+    contactSizer->Add(profileImage, 0, wxTOP | wxLEFT | wxBOTTOM, 12);
+
+    // Contact Info (Name, Last Message, Date)
+    wxBoxSizer* infoSizer = new wxBoxSizer(wxVERTICAL);
+    
+    wxString name = "John Doe";
+    
+    wxStaticText* nameText = new wxStaticText(contactPanel, wxID_ANY, name);
+    wxFont nameFont = nameText->GetFont();
+    nameFont.SetWeight(wxFONTWEIGHT_BOLD);
+    nameText->SetFont(nameFont);
+    infoSizer->Add(nameText, 0, wxLEFT | wxRIGHT | wxTOP, 1);
+    
+    wxString lastMessage = "Hey yo WTF ?";
+    
+    wxStaticText* messageText = new wxStaticText(contactPanel, wxID_ANY, lastMessage);
+    infoSizer->Add(messageText, 0, wxLEFT | wxBOTTOM, 2);
+
+    // Get the current date and time
+    wxDateTime now = wxDateTime::Now();
+    wxString dateStr = now.FormatISODate(); // e.g., "2024-08-05"
+    
+    wxStaticText* dateText = new wxStaticText(contactPanel, wxID_ANY, dateStr);
+    wxFont dateFont = dateText->GetFont();
+    dateFont.SetPointSize(8);  // Make the date text smaller
+    dateText->SetFont(dateFont);
+    infoSizer->Add(dateText, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
+    
+    contactSizer->Add(infoSizer, 0, wxEXPAND | wxALL, 5);
+
+    contactPanel->SetSizer(contactSizer);
+
+    mainSizer->Add(contactPanel, 0, wxEXPAND | wxALL, 10);
+
+    contactsList->SetSizer(mainSizer);
+
+    leftSizer->Add(contactsList, 1, wxEXPAND | wxTOP | wxBOTTOM, 5);
+/*  */
+
 
     panel_left->SetSizerAndFit(leftSizer);
 
@@ -60,15 +119,15 @@ MainFrame::MainFrame(const wxString &title)
     wxTextCtrl* receiverName = new wxTextCtrl(panel_right_top, wxID_ANY, wxT("To: John Doe"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxBORDER_NONE);
     receiverName->SetBackgroundColour(wxColor(40, 40, 42));
     receiverName->SetForegroundColour(wxColor(255, 255, 255));
-    receiverName->SetFont(wxFont(wxFontInfo(15).Light()));
+    receiverName->SetFont(wxFont(wxFontInfo(14).Light()));
     nameIconSizer->Add(receiverName, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
 
     nameIconSizer->AddStretchSpacer(1);
 
     panel_right_top->SetSizer(nameIconSizer);
 
-    wxStaticBitmap* videoCallIconCtrl = new wxStaticBitmap(panel_right_top, wxID_ANY, wxBitmap(video), wxDefaultPosition, wxSize(22, 22));
-    wxStaticBitmap* infoIconCtrl = new wxStaticBitmap(panel_right_top, wxID_ANY, wxBitmap(info), wxDefaultPosition, wxSize(19, 19));
+    wxStaticBitmap* videoCallIconCtrl = new wxStaticBitmap(panel_right_top, wxID_ANY, wxBitmap(video), wxDefaultPosition, wxSize(20, 20));
+    wxStaticBitmap* infoIconCtrl = new wxStaticBitmap(panel_right_top, wxID_ANY, wxBitmap(info), wxDefaultPosition, wxSize(17, 17));
 
     nameIconSizer->Add(videoCallIconCtrl, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 20);
     nameIconSizer->Add(infoIconCtrl, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 15);
@@ -90,16 +149,16 @@ MainFrame::MainFrame(const wxString &title)
     wxBoxSizer* message_box_sizer = new wxBoxSizer(wxVERTICAL);
     m_txtDisplay->SetSizer(message_box_sizer);
 
-/* */
-
-    // Simulate user 1 sending a message (left-aligned)
+/* 
+    Simulate user 1 sending a message (left-aligned)
+    Simulate user 2 responding (right-aligned)
+*/
     wxRichTextAttr leftAlign;
     leftAlign.SetAlignment(wxTEXT_ALIGNMENT_LEFT);
     m_txtDisplay->BeginStyle(leftAlign);
     m_txtDisplay->WriteText("Hello, how are you?\n");
     m_txtDisplay->EndStyle();
 
-    // Simulate user 2 responding (right-aligned)
     wxRichTextAttr rightAlign;
     rightAlign.SetAlignment(wxTEXT_ALIGNMENT_RIGHT);
     m_txtDisplay->BeginStyle(rightAlign);
