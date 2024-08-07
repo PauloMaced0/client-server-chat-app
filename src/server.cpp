@@ -21,8 +21,7 @@
 
 int main (void) {
     int listenfd = 0, connfd = 0;
-    struct sockaddr_in serv_addr;
-    struct sockaddr_in cli_addr;
+    struct sockaddr_in serv_addr, cli_addr;
     socklen_t clilen = sizeof(cli_addr);
 
     if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
