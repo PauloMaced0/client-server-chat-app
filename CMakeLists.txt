@@ -49,6 +49,13 @@ set(SRC_FILES_SERVER
 set(SRC_FILES_CLIENT
     src/app.cpp
     lib/main_frame.cpp
+    lib/left_panel.cpp
+    lib/right_panel.cpp
+    lib/search.cpp
+    lib/contacts.cpp
+    lib/user_header.cpp
+    lib/text_display.cpp
+    lib/send_message.cpp
 )
 
 # Add executables
