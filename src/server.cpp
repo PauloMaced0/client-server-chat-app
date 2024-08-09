@@ -9,6 +9,7 @@
 #include <iostream>
 #include <memory>
 #include <netinet/in.h>
+#include <sys/_endian.h>
 #include <sys/socket.h>
 #include <thread>
 #include <unistd.h>
@@ -17,7 +18,7 @@
 #define BACKLOG 5
 #define PROTOCOL "TPC"
 #define IP_ADDRESS "127.0.0.1"
-#define PORT 5000
+#define PORT 5001
 
 int main (void) {
     int listenfd = 0, connfd = 0;
@@ -31,7 +32,7 @@ int main (void) {
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = inet_addr(IP_ADDRESS);
-    serv_addr.sin_port = PORT;
+    serv_addr.sin_port = htons(PORT);
 
     signal(SIGPIPE, SIG_IGN);
 
