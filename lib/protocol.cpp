@@ -1,11 +1,15 @@
 #include "protocol.h"
 
 #include <arpa/inet.h>
+#include <cstdint>
+#include <cstdio>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
 #include <sstream>
 #include <cstring>
+#include <sys/_endian.h>
+#include <unistd.h>
 
 string JoinMessage::to_string() const {
     std::ostringstream oss;
@@ -37,7 +41,7 @@ std::unique_ptr<LeaveMessage> LeaveMessage::from_string(const string &data) {
 
 string RegisterMessage::to_string() const {
     std::ostringstream oss;
-    oss << command << '\0' << user ;
+    oss << command << '\0' << user;
     return oss.str();
 }
 
@@ -82,55 +86,68 @@ TextMessage Proto::message(const string &message, const string& channel) {
 }
 
 void Proto::send_msg(int socket_fd, const Message &msg) {
+    int sent;
     string msg_str = msg.to_string();
-    uint32_t len = htonl(msg_str.size());
+    uint32_t len = msg_str.size();
 
-    if (send(socket_fd, &len, sizeof(len), 0) == -1) {
-        std::cerr << "Failed to send message length. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
-        exit(EXIT_FAILURE);
-    } else if ((uint32_t) send(socket_fd, &len, sizeof(len), 0) != sizeof(len)) {
-        throw std::runtime_error("Failed to send message length");
-    }
+    uint32_t len_network_order = htonl(len);
 
-    if (send(socket_fd, msg_str.c_str(), msg_str.size(), 0) == -1) {
+    char len_bytes[sizeof(uint32_t)];
+    memcpy(len_bytes, &len_network_order, sizeof(uint32_t));
+
+    string full_frame(len_bytes, sizeof(uint32_t));
+
+    full_frame += msg_str;
+
+    sent = send(socket_fd, &full_frame, full_frame.size(), 0); 
+
+    if (sent == -1) {
         std::cerr << "Failed to send message data. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
         exit(EXIT_FAILURE);
-    } else if ((uint32_t) send(socket_fd, msg_str.c_str(), msg_str.size(), 0) == msg_str.size()) {
+    } else if ((uint32_t) sent == msg_str.size()) {
         throw std::runtime_error("Failed to send message data");
     }
 }
 
 std::unique_ptr<Message> Proto::recv_msg(int socket_fd) {
-    uint32_t len;
     int received;
+    char len_arr[sizeof(uint32_t)];
+    uint32_t len;
 
-    received = recv(socket_fd, &len, sizeof(len), 0);
-    if (received == 0) {
-        throw std::runtime_error("Connection is closed");
-    } else if (received == -1) {
-        std::cerr << "Failed to receive message length. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
-        exit(EXIT_FAILURE);
-    } else if ((uint32_t) received != sizeof(len)) { 
-        throw std::runtime_error("Failed to receive message data");
-    }
+    received = recv(socket_fd, &len_arr, sizeof(len_arr)/sizeof(len_arr[0]), 0);
+
+    memcpy(&len, len_arr, sizeof(len));
 
     len = ntohl(len);
-    // TODO check this !!!
-    char buffer[len + 1];
 
-    received = recv(socket_fd, buffer, len, 0);
     if (received == 0) {
-        throw std::runtime_error("Connection is closed");
+        std::cerr << "Connection is closed!" << std::endl;
+        return NULL;
     } else if (received == -1) {
         std::cerr << "Failed to receive message length. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
-        exit(EXIT_FAILURE);
-    } else if ((uint32_t) received != sizeof(len)) {
-        throw std::runtime_error("Failed to receive message data");
+        return NULL;
+    } else if ((uint32_t) received != sizeof(len_arr)/sizeof(len_arr[0])) { 
+        std::cerr << "Failed to receive message data" << std::endl;
+        return NULL;
     }
 
-    // TODO check this !!!
+    char buffer[len];
+
+    received = recv(socket_fd, &buffer, len, 0);
+    if (received == 0) {
+        std::cerr << "Connection is closed!" << std::endl;
+        return NULL;
+    } else if (received == -1) {
+        std::cerr << "Failed to receive message length. Error code: " << errno << " (" << strerror(errno) << ")" << std::endl;
+        return NULL;
+    } else if ((uint32_t) received != len) {
+        std::cerr << "Failed to receive message data" << std::endl;
+        return NULL;
+    }
+
     buffer[len] = '\0';
-    return Message::from_string(buffer);
+
+    return Message::from_string(string(buffer, len));
 }
 
 std::unique_ptr<Message> Message::from_string(const string& data) {

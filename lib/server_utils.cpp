@@ -1,4 +1,5 @@
 #include "server_utils.h"
+#include "protocol.h"
 
 #include <algorithm>
 #include <iostream>
@@ -46,14 +47,29 @@ void handle_client(std::unique_ptr<Client> client) {
     while (true) {
         std::unique_ptr<Message> data = Proto::recv_msg(client->connfd);
 
+        if (data == NULL)
+            break;
+
         if (data->command == REGISTER) {
-            std::cout << "-> received register message" << std::endl;
+            auto* registerMsg = dynamic_cast<RegisterMessage*>(data.get());
+            if (registerMsg) {
+                std::cout << "-> received register message for user: " << registerMsg->user << "."<< std::endl;
+            }
         } else if (data->command == JOIN) {
-            std::cout << "-> received join message" << std::endl;
+            auto* joinMsg = dynamic_cast<JoinMessage*>(data.get());
+            if (joinMsg) {
+                std::cout << "-> received join message" << std::endl;
+            }
         } else if (data->command == LEAVE) {
-            std::cout << "-> received leave message" << std::endl;
+            auto* leaveMsg = dynamic_cast<LeaveMessage*>(data.get());
+            if (leaveMsg) {
+                std::cout << "-> received leave message" << std::endl;
+            }
         } else if (data->command == TEXT) {
-            std::cout << "-> received text message" << std::endl;
+            auto* textMsg = dynamic_cast<TextMessage*>(data.get());
+            if (textMsg) {
+                std::cout << "-> received text message: " << textMsg->message << std::endl;
+            }
         } else {
             break;
         }
