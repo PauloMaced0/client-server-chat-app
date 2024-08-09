@@ -48,6 +48,7 @@ set(SRC_FILES_SERVER
 
 set(SRC_FILES_CLIENT
     src/app.cpp
+    lib/protocol.cpp
     lib/main_frame.cpp
     lib/left_panel.cpp
     lib/right_panel.cpp
